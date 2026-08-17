@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claw Machine — Classroom Objects</title>
+<style>
+  :root{--deep:#5B4BC4;--peri:#8F7BEB;--ink:#33268F;--pink-deep:#E46BB4;--lime-deep:#4E9A1F;--red:#E5484D;--gold:#FFD34D;}
+  *{box-sizing:border-box;} html,body{height:100%;}
+  body{margin:0;overflow:hidden;color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,#B79CFF 0%,#EFD3F7 45%,#8F7BEB 100%);}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(2px 2px at 15% 25%,#fff 50%,transparent 55%),radial-gradient(2px 2px at 80% 15%,#fff 50%,transparent 55%),radial-gradient(3px 3px at 65% 70%,#FFE3F7 50%,transparent 55%),repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,transparent 1px 70px),repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,transparent 1px 70px);}
+  [hidden]{display:none!important;}
+  #wrap{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;align-items:center;padding:10px;gap:8px;}
+  .title-y2k{background:linear-gradient(100deg,#fff 0%,#FFD9F0 25%,#B9A7F2 50%,#8FE8F0 75%,#fff 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px var(--deep);filter:drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 12px rgba(91,75,196,.5));font-weight:900;letter-spacing:.04em;text-transform:uppercase;animation:holo 7s linear infinite;margin:0;font-size:clamp(1.2rem,4vw,2.2rem);}
+  @keyframes holo{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+  #hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-weight:800;}
+  #hud span{background:rgba(255,255,255,.88);border:2px solid var(--deep);border-radius:999px;padding:5px 14px;box-shadow:inset 0 0 0 2px #fff;}
+  #hud button{border:2px solid var(--deep);border-radius:999px;padding:5px 12px;cursor:pointer;background:rgba(255,255,255,.88);font:inherit;font-weight:800;}
+  .glass{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(233,219,255,.9));border:3px solid var(--deep);border-radius:22px;box-shadow:inset 0 0 0 3px #fff,inset 0 4px 12px rgba(255,255,255,.9),0 10px 26px rgba(91,75,196,.4);}
+  #cabinet{position:relative;width:min(560px,94vw);height:min(60vh,540px);border:4px solid #fff;outline:3px solid var(--deep);border-radius:26px;overflow:hidden;background-color:rgba(185,167,242,.25);background-image:linear-gradient(180deg,rgba(255,255,255,.35),rgba(185,167,242,.25) 60%,rgba(143,123,235,.35));background-size:cover;background-position:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 14px 34px rgba(91,75,196,.5);}
+  #pit-floor{position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(247,168,216,.6));border-top:3px solid rgba(255,255,255,.8);}
+  .plush{position:absolute;bottom:10px;width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 6px 12px rgba(91,75,196,.35),inset -6px -10px 10px rgba(143,123,235,.35);background:radial-gradient(circle at 30% 25%,#fff 0%,#FFD9F0 45%,#B9A7F2 100%);}
+  .plush .p-emoji{font-size:46px;} .plush img{width:100%;height:100%;object-fit:contain;} .blend{mix-blend-mode:multiply;}
+  #claw{position:absolute;top:0;left:0;z-index:5;width:60px;will-change:transform;}
+  #cable{position:absolute;left:50%;top:0;width:3px;margin-left:-1px;height:40px;background:linear-gradient(180deg,#fff,#9aa4c0);}
+  .hand{position:absolute;left:50%;top:38px;transform:translateX(-50%);width:36px;height:20px;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,#fff,#c7cede 60%,#8f97b3);}
+  .prong{position:absolute;top:16px;width:10px;height:22px;border:3px solid #8f97b3;border-top:none;border-radius:0 0 10px 10px;}
+  .prong.l{left:6px;transform:rotate(14deg);} .prong.r{right:6px;transform:rotate(-14deg);}
+  #claw-img{position:absolute;left:50%;top:26px;transform:translateX(-50%);width:96px;height:108px;object-fit:contain;}
+  #claw.has-img .hand,#claw.has-img .prong{display:none;}
+  #held{position:absolute;top:34px;left:50%;transform:translateX(-50%);width:70px;height:70px;display:flex;align-items:center;justify-content:center;}
+  #held-emoji{font-size:44px;} #held-img{width:100%;height:100%;object-fit:contain;}
+  #controls{display:flex;gap:10px;}
+  .btn{min-height:48px;padding:10px 24px;border-radius:999px;cursor:pointer;border:2px solid var(--deep);font:inherit;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.05em;background:linear-gradient(180deg,#fff 0%,#E4D6FF 40%,#A98BFF 100%);box-shadow:inset 0 2px 3px #fff,inset 0 -3px 6px rgba(91,75,196,.3),0 3px 0 var(--deep),0 7px 14px rgba(91,75,196,.35);}
+  .btn-candy{color:#8C1D54;border-color:var(--pink-deep);background:linear-gradient(180deg,#fff 0%,#FFD9F0 40%,#FF8CC6 100%);}
+  .btn-big{min-height:54px;font-size:1.1rem;padding:12px 42px;}
+  .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(51,38,143,.45);backdrop-filter:blur(4px);}
+  .card{width:min(600px,100%);padding:20px;text-align:center;}
+  #pz-visual{margin:6px 0;display:flex;align-items:center;justify-content:center;}
+  #pz-emoji{font-size:64px;} #pz-img{width:160px;height:160px;object-fit:contain;}
+  #slots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0;}
+  .slot{min-width:34px;height:44px;padding:0 6px;border-radius:10px;border:2px solid var(--peri);background:rgba(255,255,255,.92);font-weight:900;font-size:1.2rem;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .slot.space{min-width:16px;border:none;background:transparent;cursor:default;}
+  .slot.bad{border-color:var(--red);animation:shk .3s ease;} @keyframes shk{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  #tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0;}
+  .tile{min-width:38px;height:44px;border-radius:10px;border:2px solid var(--deep);cursor:pointer;background:linear-gradient(180deg,#fff,#E4D6FF 60%,#B9A7F2);font-weight:900;font-size:1.2rem;color:var(--ink);box-shadow:0 3px 0 var(--deep);}
+  .tile:disabled{opacity:.25;cursor:default;}
+  #pz-feedback{min-height:24px;font-weight:800;margin:6px 0;} #pz-feedback.err{color:var(--red);}
+  .tag{font-weight:800;color:var(--deep);margin:6px 0;}
+  .how{font-weight:600;font-size:.95rem;background:rgba(255,255,255,.7);border:2px dashed var(--peri);border-radius:14px;padding:10px 14px;margin:10px 0;}
+  .confetto{position:absolute;z-index:9;pointer-events:none;border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1 class="title-y2k">🎁 Claw Machine: Classroom Objects</h1>
+  <div id="hud"><span id="score">⭐ 0</span><span id="prog"></span><span id="best"></span><button id="btn-sound" type="button">🔊</button></div>
+  <div id="cabinet"><div id="pit-floor"></div>
+    <div id="claw"><div id="cable"></div><div class="hand"></div><div class="prong l"></div><div class="prong r"></div>
+      <img id="claw-img" alt="" hidden>
+      <div id="held" hidden><span id="held-emoji"></span><img id="held-img" alt="" hidden></div>
+    </div>
+  </div>
+  <div id="controls">
+    <button id="btn-left" type="button" class="btn">◀</button>
+    <button id="btn-drop" type="button" class="btn btn-candy">⬇ Drop</button>
+    <button id="btn-right" type="button" class="btn">▶</button>
+  </div>
+</div>
+<div id="pz" class="overlay" hidden><div class="glass card">
+  <h2 class="title-y2k">You caught it!</h2>
+  <div id="pz-visual"><span id="pz-emoji"></span><img id="pz-img" alt="" hidden></div>
+  <p class="tag">Build the word from the letters:</p>
+  <div id="slots"></div><div id="tray"></div>
+  <div id="pz-feedback"></div>
+  <button id="pz-reset" type="button" class="btn">Reset</button>
+</div></div>
+<div id="menu" class="overlay"><div class="glass card">
+  <h1 class="title-y2k">🎁 Claw Machine</h1>
+  <p class="tag">Classroom Objects</p>
+  <p class="how">Move the claw with <b>◀ ▶</b> (or <b>← →</b>), press <b>DROP</b> (or <b>Space</b>) to grab a plushie. Then build its name from the letters! Catch all <b id="goal"></b> objects to win.</p>
+  <button id="btn-start" type="button" class="btn btn-candy btn-big">Play ▶</button>
+</div></div>
+<div id="end" class="overlay" hidden><div class="glass card">
+  <h1 id="end-title" class="title-y2k"></h1>
+  <p id="end-text" class="tag"></p>
+  <p id="end-stats" class="tag"></p>
+  <button id="btn-again" type="button" class="btn btn-candy btn-big">Play again ↻</button>
+</div></div>
+<script>
+const WORDS=[
+  ["bag","🎒","images/bag.png"],["board","🟩","images/board.png"],["bookshelf","📚","images/bookshelf.png"],
+  ["desk","🪑","images/desk.png"],["dictionary","📖","images/dictionary.png"],["laptop","💻","images/laptop.png"],
+  ["notebook","📓","images/notebook.png"],["pen","🖊️","images/pen.png"],["pencil","✏️","images/pencil.png"],
+  ["pencil sharpener","⚙️","images/pencil_sharpener.png"],["rubber","🧽","images/rubber.png"],["ruler","📏","images/ruler.png"]];
+const GOAL=WORDS.length, STORAGE_KEY="clawBest", SKINS={claw:"images/claw.png",machine:"images/machine.png"};
+const $=s=>document.querySelector(s);
+const cab=$("#cabinet"),claw=$("#claw"),cable=$("#cable"),clawImg=$("#claw-img"),held=$("#held"),heldEmoji=$("#held-emoji"),heldImg=$("#held-img"),
+  scoreEl=$("#score"),progEl=$("#prog"),bestEl=$("#best"),pz=$("#pz"),pzEmoji=$("#pz-emoji"),pzImg=$("#pz-img"),
+  slotsEl=$("#slots"),trayEl=$("#tray"),pzFb=$("#pz-feedback"),menu=$("#menu"),end=$("#end");
+$("#goal").textContent=GOAL;
+let W=0,H=0,minX=40,maxX=0,maxY=0,clawX=120,clawY=0,phase="idle",heldPlush=null,
+  leftDown=false,rightDown=false,busy=false,plushies=[],collected=new Set(),score=0,best=0,muted=false,
+  target="",slots=[],attempts=0,lastT=0; const IMG={};
+let ac=null;
+function beep(f,d,type,when,slide){ if(muted)return; try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  const t=ac.currentTime+(when||0),o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||"sine";o.frequency.setValueAtTime(f,t); if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.2,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.05);}catch(e){} }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function loadBest(){try{best=+localStorage.getItem(STORAGE_KEY)||0;}catch(e){}}
+function saveBest(){try{localStorage.setItem(STORAGE_KEY,best);}catch(e){}}
+function hud(){ scoreEl.textContent="⭐ "+score; progEl.textContent="Words "+collected.size+"/"+GOAL; bestEl.textContent="👑 "+best; }
+function cut(img){ try{ const c=document.createElement("canvas");c.width=img.naturalWidth;c.height=img.naturalHeight;
+  const x=c.getContext("2d");x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+  for(let i=0;i<p.length;i+=4){ if(p[i]>235&&p[i+1]>235&&p[i+2]>235)p[i+3]=0; else if(p[i]>210&&p[i+1]>210&&p[i+2]>210)p[i+3]=110; }
+  x.putImageData(d,0,0);return{src:c.toDataURL(),clean:true}; }catch(e){ return{src:img.src,clean:false}; } }
+function altPath(p){ return p.indexOf("images/")===0 ? p.slice(7) : "images/"+p; }
+function loadWithFallback(path,onOk){ const im=new Image(); im.onload=()=>onOk(im);
+  im.onerror=()=>{ const im2=new Image(); im2.onload=()=>onOk(im2); im2.onerror=()=>{}; im2.src=altPath(path); };
+  im.src=path; }
+function preloadImages(){
+  WORDS.forEach(w=>{ loadWithFallback(w[2],im=>{ IMG[w[0]]=cut(im); }); });
+  loadWithFallback(SKINS.claw,ci=>{ const r=cut(ci); clawImg.src=r.src; clawImg.hidden=false; if(!r.clean)clawImg.classList.add("blend"); claw.classList.add("has-img"); });
+  loadWithFallback(SKINS.machine,mi=>{ cab.style.backgroundImage="url('"+mi.src+"')"; });
+}
+function setVisual(imgEl,emojiEl,word,emoji){
+  const r=IMG[word]; const entry=WORDS.find(x=>x[0]===word); const raw=entry?entry[2]:"";
+  emojiEl.textContent=emoji; emojiEl.style.display=""; imgEl.hidden=true;
+  imgEl.onload=()=>{ imgEl.hidden=false; emojiEl.style.display="none"; };
+  imgEl.onerror=()=>{ imgEl.hidden=true; emojiEl.style.display=""; };
+  if(r){ imgEl.classList.toggle("blend",!r.clean); imgEl.src=r.src; }
+  else if(raw){ imgEl.classList.add("blend"); imgEl.src=raw; } }
+function measure(){ const r=cab.getBoundingClientRect(); W=r.width; H=r.height; maxX=W-40; maxY=H-150; }
+function spawnPlushies(){ plushies.forEach(p=>p.el.remove()); plushies=[];
+  const pool=shuffle(WORDS.filter(w=>!collected.has(w[0]))).slice(0,5); const innerW=W-120;
+  pool.forEach((w,i)=>{ const el=document.createElement("div"); el.className="plush";
+    el.innerHTML='<span class="p-emoji"></span><img alt="" hidden>';
+    setVisual(el.querySelector("img"),el.querySelector(".p-emoji"),w[0],w[1]);
+    const x=45+(i+0.5)*(innerW/pool.length)+(Math.random()*24-12);
+    el.style.left=(x-44)+"px"; cab.appendChild(el);
+    plushies.push({word:w[0],emoji:w[1],x,el}); }); }
+function drop(){ if(busy||phase!=="idle") return; busy=true; phase="dropping"; beep(300,.15,"square",0,180); }
+function grab(){ let near=null,nd=1e9; plushies.forEach(p=>{ const d=Math.abs(p.x-clawX); if(d<nd){nd=d;near=p;} });
+  if(near&&nd<48){ heldPlush=near; near.el.remove(); plushies=plushies.filter(p=>p!==near);
+    setVisual(heldImg,heldEmoji,heldPlush.word,heldPlush.emoji); held.hidden=false; beep(660,.1); }
+  else { heldPlush=null; beep(220,.2,"sawtooth",0,110); }
+  phase="rising"; }
+function afterRise(){ if(heldPlush){ openPuzzle(heldPlush); } else { busy=false; showTip("Empty! Try again."); } phase="idle"; }
+function showTip(t){ const el=document.createElement("div"); el.className="tag";
+  el.style.cssText="position:absolute;top:40%;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.9);border-radius:999px;padding:6px 16px;z-index:8;";
+  el.textContent=t; cab.appendChild(el); setTimeout(()=>el.remove(),1200); }
+function loop(t){ const dt=Math.min(50,t-(lastT||t)); lastT=t;
+  if(phase==="idle"){ if(leftDown)clawX-=dt*0.35; if(rightDown)clawX+=dt*0.35; clawX=Math.max(minX,Math.min(maxX,clawX)); }
+  else if(phase==="dropping"){ clawY+=dt*0.5; if(clawY>=maxY){clawY=maxY;grab();} }
+  else if(phase==="rising"){ clawY-=dt*0.45; if(clawY<=0){clawY=0;afterRise();} }
+  claw.style.transform="translate("+(clawX-30)+"px,"+clawY+"px)"; cable.style.height=(40+clawY)+"px";
+  requestAnimationFrame(loop); }
+function openPuzzle(plush){ target=plush.word; attempts=0;
+  setVisual(pzImg,pzEmoji,plush.word,plush.emoji);
+  pzFb.textContent=""; pzFb.className="";
+  slots=target.split("").map(ch=>({space:ch===" ",letter:null,tile:null}));
+  const letters=shuffle(target.replace(/ /g,"").split(""));
+  if(letters.join("")===target.replace(/ /g,"")) letters.reverse();
+  trayEl.innerHTML="";
+  letters.forEach(L=>{ const b=document.createElement("button"); b.type="button"; b.className="tile"; b.textContent=L;
+    b.addEventListener("click",()=>placeTile(b,L)); trayEl.appendChild(b); });
+  renderSlots(); pz.hidden=false; }
+function placeTile(btn,L){ const idx=slots.findIndex(s=>!s.space&&!s.letter); if(idx<0) return;
+  slots[idx].letter=L; slots[idx].tile=btn; btn.disabled=true; renderSlots(); maybeCheck(); }
+function removeSlot(i){ const s=slots[i]; if(s.space||!s.letter) return; if(s.tile)s.tile.disabled=false;
+  s.letter=null; s.tile=null; renderSlots(); }
+function renderSlots(){ slotsEl.innerHTML="";
+  slots.forEach((s,i)=>{ const d=document.createElement("div"); d.className="slot"+(s.space?" space":"");
+    d.textContent=s.space?"":(s.letter||""); if(!s.space)d.addEventListener("click",()=>removeSlot(i));
+    slotsEl.appendChild(d); }); }
+function maybeCheck(){ if(slots.some(s=>!s.space&&!s.letter)) return;
+  const built=slots.map(s=>s.space?" ":s.letter).join("");
+  if(built===target){ solved(); }
+  else { attempts=1; pzFb.textContent="Not quite! Tap a letter to fix."; pzFb.className="err";
+    slotsEl.querySelectorAll(".slot:not(.space)").forEach(el=>el.classList.add("bad"));
+    setTimeout(()=>slotsEl.querySelectorAll(".slot").forEach(el=>el.classList.remove("bad")),400);
+    beep(220,.25,"sawtooth",0,110); } }
+function solved(){ pzFb.textContent="✅ "+target+"!"; pzFb.className="";
+  const gain=10+(attempts===0?5:0); score+=gain; collected.add(target); hud();
+  beep(660,.12); beep(880,.14,"sine",.1); confetti();
+  setTimeout(()=>{ pz.hidden=true; held.hidden=true; heldImg.hidden=true; heldEmoji.style.display=""; heldPlush=null;
+    if(collected.size>=GOAL) return endGame(true);
+    if(plushies.length===0) spawnPlushies();
+    busy=false; },900); }
+$("#pz-reset").addEventListener("click",()=>{ slots.forEach(s=>{ if(s.tile)s.tile.disabled=false; s.letter=null; s.tile=null; }); renderSlots(); pzFb.textContent=""; pzFb.className=""; });
+function confetti(){ const cols=["#FF8CC6","#8F7BEB","#8FE8F0","#FFD34D","#8FD14F","#fff"];
+  for(let i=0;i<30;i++){ const c=document.createElement("span"); c.className="confetto"; const s=6+Math.random()*8;
+    c.style.cssText="left:"+(Math.random()*100)+"%;top:-20px;width:"+s+"px;height:"+s+"px;background:"+cols[i%6]+";";
+    document.body.appendChild(c);
+    c.animate([{transform:"translateY(0)",opacity:1},{transform:"translateY("+(innerHeight+40)+"px) rotate(720deg)",opacity:.9}],{duration:900+Math.random()*700,easing:"ease-in"}).onfinish=()=>c.remove(); } }
+function start(){ collected=new Set(); score=0; busy=false; phase="idle"; clawY=0; clawX=W/2;
+  menu.hidden=true; end.hidden=true; pz.hidden=true; held.hidden=true;
+  spawnPlushies(); hud(); }
+function endGame(win){ if(score>best){ best=score; saveBest(); }
+  $("#end-title").textContent=win?"🏆 You win!":"Game over!";
+  $("#end-text").textContent=win?"All "+GOAL+" objects collected — amazing!":"The machine waits for you...";
+  $("#end-stats").textContent=score+" points • "+best+" best • "+collected.size+" words";
+  end.hidden=false; hud();
+  if(win){ try{ window.parent.postMessage({type:"minigame-won",id:"claw"},"*"); }catch(e){} } }
+$("#btn-start").addEventListener("click",start);
+$("#btn-again").addEventListener("click",start);
+$("#btn-drop").addEventListener("click",drop);
+$("#btn-sound").addEventListener("click",()=>{ muted=!muted; $("#btn-sound").textContent=muted?"🔇":""; });
+function bindHold(el,set){ el.addEventListener("pointerdown",e=>{e.preventDefault();set(true);});
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>el.addEventListener(ev,()=>set(false))); }
+bindHold($("#btn-left"),v=>leftDown=v); bindHold($("#btn-right"),v=>rightDown=v);
+document.addEventListener("keydown",e=>{ if(!pz.hidden) return;
+  if(e.key==="ArrowLeft"){ leftDown=true; e.preventDefault(); }
+  else if(e.key==="ArrowRight"){ rightDown=true; e.preventDefault(); }
+  else if(e.code==="Space"||e.key==="ArrowDown"){ drop(); e.preventDefault(); } });
+document.addEventListener("keyup",e=>{ if(e.key==="ArrowLeft")leftDown=false; if(e.key==="ArrowRight")rightDown=false; });
+window.addEventListener("resize",measure);
+loadBest(); measure(); hud(); preloadImages(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
