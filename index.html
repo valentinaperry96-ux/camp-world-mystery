@@ -748,23 +748,21 @@ function renderMiniGame(){
   const mg = GAME_DATA.miniGames[gameState.activeMiniGameId];
   const container = $("#minigame-container");
   if (!mg || !container) return;
-
-  if (mg.type === "claw" || mg.type === "bubble" || mg.type === "verbjump"){
-    const html = getMiniGameHTML(mg.type);
-    container.innerHTML = `
-      <div class="minigame" style="padding:6px;">
-        <h3>${mg.instruction}</h3>
-        <p class="minigame__help">${mg.prompt}</p>
-        <div class="mg-frame-wrap">
-          <iframe allow="autoplay" title="${mg.instruction}"></iframe>
-        </div>
-        <div class="minigame__actions">
-          <button type="button" class="btn btn-ghost" data-action="toggle-minigame">${GAME_DATA.ui.closeMiniGame}</button>
-        </div>
-      </div>`;
-    container.querySelector("iframe").srcdoc = html;
-    return;
-  }
+  const files = { claw: "claw_game.html", bubble: "bubble_drift.html", verbjump: "game1.html" };
+  container.innerHTML = `
+    <div class="minigame" style="padding:6px;">
+      <h3>${mg.instruction}</h3>
+      <p class="minigame__help">${mg.prompt}</p>
+      <div class="mg-frame-wrap">
+        <iframe allow="autoplay" title="${mg.instruction}"></iframe>
+      </div>
+      <div class="minigame__actions">
+        <button type="button" class="btn btn-ghost" data-action="toggle-minigame">${GAME_DATA.ui.closeMiniGame}</button>
+      </div>
+    </div>`;
+  const f = files[mg.type];
+  if (f) container.querySelector("iframe").src = f;
+}
 }
 
 function getMiniGameHTML(type){
@@ -1512,8 +1510,8 @@ function spawnBubble(taskIdx){
   gameEl.appendChild(el);
   const b={ el, r, task:taskIdx,
     x:r+Math.random()*(W-2*r), y:90+Math.random()*(H-160),
-    vx:(Math.random()<.5?-1:1)*(0.5+Math.random()*0.6),
-    vy:(Math.random()<.5?-1:1)*(0.25+Math.random()*0.35),
+    vx:(Math.random()<.5?-1:1)*(0.9+Math.random()*0.9),
+    vy:(Math.random()<.5?-1:1)*(0.45+Math.random()*0.45),
     ph:Math.random()*6.28 };
   el.addEventListener("click",()=>openTask(b));
   bubbles.push(b);
@@ -1529,7 +1527,7 @@ function loop(t){
   const dt=Math.min(50,t-(lastT||t)); lastT=t;
   if(!paused){
     for(const b of bubbles){
-      b.x+=b.vx*dt*0.12; b.y+=b.vy*dt*0.12 + Math.sin(t/900+b.ph)*0.18;
+      b.x+=b.vx*dt*0.22; b.y+=b.vy*dt*0.22 + Math.sin(t/700+b.ph)*0.25;
       if(b.x<-b.r-10) b.x=W+b.r; if(b.x>W+b.r+10) b.x=-b.r;
       if(b.y<80){ b.y=80; b.vy=Math.abs(b.vy); }
       if(b.y>H-b.r){ b.y=H-b.r; b.vy=-Math.abs(b.vy); }
